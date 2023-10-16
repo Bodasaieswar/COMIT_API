@@ -2,31 +2,31 @@ const sql = require('mssql');
 const Joi = require('joi');
 
 // Environment variables or configuration management tools are recommended here
-// const config = {
-// 	user: process.env.DB_USER || 'admin',
-// 	password: process.env.DB_PASSWORD || 'Pa$$w0rd',
-// 	server:
-// 		process.env.DB_SERVER ||
-// 		'aws-comit.cuuxhpxisntp.us-east-2.rds.amazonaws.com',
-// 	database: process.env.DB_DATABASE || 'ClinicalStudies',
-// 	options: {
-// 		encrypt: true, // Use this if you're on Windows Azure
-// 		trustServerCertificate: true, // Use this to disable certificate validation
-// 	},
-// };
-
 const config = {
-	user: process.env.DB_USER || 'user_CStudies',
-	password:
-		process.env.DB_PASSWORD ||
-		'foggy-misogyny-digestible-irascible-require-diamond',
-	server: process.env.DB_SERVER || 'com-dtrust-test.bluecat.arizona.edu',
+	user: process.env.DB_USER || 'admin',
+	password: process.env.DB_PASSWORD || 'Pa$$w0rd',
+	server:
+		process.env.DB_SERVER ||
+		'aws-comit.cuuxhpxisntp.us-east-2.rds.amazonaws.com',
 	database: process.env.DB_DATABASE || 'ClinicalStudies',
 	options: {
 		encrypt: true, // Use this if you're on Windows Azure
 		trustServerCertificate: true, // Use this to disable certificate validation
 	},
 };
+
+// const config = {
+// 	user: process.env.DB_USER || 'user_CStudies',
+// 	password:
+// 		process.env.DB_PASSWORD ||
+// 		'foggy-misogyny-digestible-irascible-require-diamond',
+// 	server: process.env.DB_SERVER || 'com-dtrust-test.bluecat.arizona.edu',
+// 	database: process.env.DB_DATABASE || 'ClinicalStudies',
+// 	options: {
+// 		encrypt: true, // Use this if you're on Windows Azure
+// 		trustServerCertificate: true, // Use this to disable certificate validation
+// 	},
+// };
 
 async function fetchClinicalStudies() {
 	let pool = null;
