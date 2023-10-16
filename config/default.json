@@ -1,0 +1,8 @@
+{
+	"db": {
+		"host": "com-dtrust-test.bluecat.arizona.edu",
+		"user": "user_CStudies",
+		"database": "ClinicalStudies",
+		"password": "foggy-misogyny-digestible-irascible-require-diamond"
+	}
+}
