@@ -1,6 +1,7 @@
 const {
 	fetchClinicalStudies,
 	fetchClinicalStudyById,
+	insertClinicalStudy,
 } = require('../models/clinicalTrails.js');
 
 const express = require('express');
@@ -33,6 +34,16 @@ router.get('/:id', async (req, res) => {
 			// Otherwise, it's an unexpected error, so send a 500 status code
 			res.status(500).send('Internal Server Error');
 		}
+	}
+});
+
+router.post('/', async (req, res) => {
+	try {
+		await insertClinicalStudy(req);
+		res.status(200).send('Row successfully inserted.');
+	} catch (err) {
+		console.error('Error:', err); // Optionally log the error
+		res.status(500).send('Insertion failed');
 	}
 });
 

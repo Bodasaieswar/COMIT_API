@@ -2,31 +2,31 @@ const sql = require('mssql');
 const Joi = require('joi');
 
 // Environment variables or configuration management tools are recommended here
-const config = {
-	user: process.env.DB_USER || 'admin',
-	password: process.env.DB_PASSWORD || 'Pa$$w0rd',
-	server:
-		process.env.DB_SERVER ||
-		'aws-comit.cuuxhpxisntp.us-east-2.rds.amazonaws.com',
-	database: process.env.DB_DATABASE || 'ClinicalStudies',
-	options: {
-		encrypt: true, // Use this if you're on Windows Azure
-		trustServerCertificate: true, // Use this to disable certificate validation
-	},
-};
-
 // const config = {
-// 	user: process.env.DB_USER || 'user_CStudies',
-// 	password:
-// 		process.env.DB_PASSWORD ||
-// 		'Pafoggy-misogyny-digestible-irascible-require-diamondw0rd',
-// 	server: process.env.DB_SERVER || 'com-dtrust-test.bluecat.arizona.edu',
+// 	user: process.env.DB_USER || 'admin',
+// 	password: process.env.DB_PASSWORD || 'Pa$$w0rd',
+// 	server:
+// 		process.env.DB_SERVER ||
+// 		'aws-comit.cuuxhpxisntp.us-east-2.rds.amazonaws.com',
 // 	database: process.env.DB_DATABASE || 'ClinicalStudies',
 // 	options: {
 // 		encrypt: true, // Use this if you're on Windows Azure
 // 		trustServerCertificate: true, // Use this to disable certificate validation
 // 	},
 // };
+
+const config = {
+	user: process.env.DB_USER || 'user_CStudies',
+	password:
+		process.env.DB_PASSWORD ||
+		'foggy-misogyny-digestible-irascible-require-diamond',
+	server: process.env.DB_SERVER || 'com-dtrust-test.bluecat.arizona.edu',
+	database: process.env.DB_DATABASE || 'ClinicalStudies',
+	options: {
+		encrypt: true, // Use this if you're on Windows Azure
+		trustServerCertificate: true, // Use this to disable certificate validation
+	},
+};
 
 async function fetchClinicalStudies() {
 	let pool = null;
@@ -37,7 +37,7 @@ async function fetchClinicalStudies() {
 		const result = await pool
 			.request()
 			.query(
-				'SELECT NCTId, OfficialTitle, BriefSummary FROM clinicalTrails;',
+				'SELECT NCTId, OfficialTitle, BriefSummary FROM ClinicalStudies;',
 			);
 		return result.recordset;
 	} catch (err) {
@@ -69,9 +69,40 @@ async function fetchClinicalStudyById(id) {
 		const result = await pool
 			.request()
 			.input('NCTId', sql.NVarChar, id)
-			.query('SELECT * FROM clinicalTrails WHERE NCTId = @NCTId;');
+			.query('SELECT * FROM ClinicalStudies WHERE NCTId = @NCTId;');
 
 		return result.recordset;
+	} catch (err) {
+		console.error('Error:', err);
+		throw err;
+	} finally {
+		if (pool) {
+			pool.close();
+		}
+	}
+}
+
+async function insertClinicalStudy(entry) {
+	let pool = null;
+	try {
+		pool = await new sql.ConnectionPool(config).connect();
+
+		const { NCTId, OfficialTitle, BriefSummary } = entry.body;
+
+		const result = await pool
+			.request()
+			.input('NCTId', sql.NVarChar, NCTId)
+			.input('OfficialTitle', sql.NVarChar, OfficialTitle)
+			.input('BriefSummary', sql.NVarChar, BriefSummary)
+			.query(
+				'INSERT INTO ClinicalStudies (NCTID, OfficialTitle, BriefSummary) VALUES (@NCTId, @OfficialTitle, @BriefSummary)',
+			);
+
+		if (result.rowsAffected[0] > 0) {
+			return 'Row successfully inserted.';
+		} else {
+			return 'No row inserted.';
+		}
 	} catch (err) {
 		console.error('Error:', err);
 		throw err;
@@ -85,4 +116,5 @@ async function fetchClinicalStudyById(id) {
 module.exports = {
 	fetchClinicalStudies,
 	fetchClinicalStudyById,
+	insertClinicalStudy,
 };
