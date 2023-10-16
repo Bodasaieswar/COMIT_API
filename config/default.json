@@ -1,8 +1,8 @@
 {
 	"db": {
-		"host": "com-dtrust-test.bluecat.arizona.edu",
-		"user": "user_CStudies",
+		"host": "aws-comit.cuuxhpxisntp.us-east-2.rds.amazonaws.com",
+		"user": "admin",
 		"database": "ClinicalStudies",
-		"password": "foggy-misogyny-digestible-irascible-require-diamond"
+		"password": "Pa$$w0rd"
 	}
 }

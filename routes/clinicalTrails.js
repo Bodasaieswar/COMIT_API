@@ -27,7 +27,12 @@ router.get('/:id', async (req, res) => {
 
 		res.send(clinicalStudy[0]); // Send the first record (should only be one due to unique ID)
 	} catch (err) {
-		res.status(500).send('Internal server error');
+		if (err.message === 'Invalid NCTId format.') {
+			res.status(400).send(err.message);
+		} else {
+			// Otherwise, it's an unexpected error, so send a 500 status code
+			res.status(500).send('Internal Server Error');
+		}
 	}
 });
 
