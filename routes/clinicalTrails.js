@@ -3,8 +3,9 @@ const {
 	fetchClinicalStudyById,
 	insertClinicalStudy,
 } = require('../models/clinicalTrails.js');
-
+const { logger } = require('../logger.js');
 const express = require('express');
+
 const router = express.Router();
 
 router.get('/', async (req, res) => {
@@ -12,6 +13,7 @@ router.get('/', async (req, res) => {
 		const clinicalStudies = await fetchClinicalStudies();
 		res.send(clinicalStudies);
 	} catch (err) {
+		logger.error(`Fetching Clinical Studies Error: ${err.message}`);
 		res.status(500).send('Internal server error');
 	}
 });
@@ -26,12 +28,13 @@ router.get('/:id', async (req, res) => {
 				.send('The Clinical Trail with the given ID was not found.');
 		}
 
-		res.send(clinicalStudy[0]); // Send the first record (should only be one due to unique ID)
+		res.send(clinicalStudy[0]);
 	} catch (err) {
+		logger.error(`Fetching Clinical Study by ID Error: ${err.message}`);
+
 		if (err.message === 'Invalid NCTId format.') {
 			res.status(400).send(err.message);
 		} else {
-			// Otherwise, it's an unexpected error, so send a 500 status code
 			res.status(500).send('Internal Server Error');
 		}
 	}
@@ -42,7 +45,7 @@ router.post('/', async (req, res) => {
 		await insertClinicalStudy(req);
 		res.status(200).send('Row successfully inserted.');
 	} catch (err) {
-		console.error('Error:', err); // Optionally log the error
+		logger.error(`Inserting Clinical Study Error: ${err.message}`);
 		res.status(500).send('Insertion failed');
 	}
 });

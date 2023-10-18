@@ -1,20 +1,27 @@
-const winston = require('winston');
-const logger = winston.createLogger({
-	level: 'info',
-	format: winston.format.simple(),
-	transports: [new winston.transports.Console()],
-});
+require('dotenv').config();
 const express = require('express');
 const app = express();
 
+const logger = require('./logger');
+const verifyEnvVariables = require('./envVerifier');
+verifyEnvVariables();
+
 require('./startup/routes')(app);
-// require('./startup/db')();
-// require('./startup/config')();
-// require('./startup/validation')();
 
 const port = process.env.PORT || 3000;
-const server = app.listen(port, () =>
-	winston.info(`Listening on port ${port}...`),
-);
+const server = app.listen(port, () => {
+	if (
+		!process.env.DB_SERVER ||
+		!process.env.DB_USER ||
+		!process.env.DB_DATABASE ||
+		!process.env.DB_PASSWORD
+	) {
+		logger.error(
+			`Server started but some environment variables are missing.`,
+		);
+	} else {
+		logger.info(`Listening on port ${port}...`);
+	}
+});
 
 module.exports = server;

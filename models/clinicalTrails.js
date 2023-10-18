@@ -1,39 +1,39 @@
 const sql = require('mssql');
 const Joi = require('joi');
+const logger = require('../logger');
 
-// Environment variables or configuration management tools are recommended here
 const config = {
-	user: process.env.DB_USER || 'admin',
-	password: process.env.DB_PASSWORD || 'Pa$$w0rd',
-	server:
-		process.env.DB_SERVER ||
-		'aws-comit.cuuxhpxisntp.us-east-2.rds.amazonaws.com',
-	database: process.env.DB_DATABASE || 'ClinicalStudies',
+	user: process.env.DB_USER,
+	password: process.env.DB_PASSWORD,
+	server: process.env.DB_SERVER,
+	database: process.env.DB_DATABASE,
 	options: {
 		encrypt: true, // Use this if you're on Windows Azure
 		trustServerCertificate: true, // Use this to disable certificate validation
 	},
 };
 
-// const config = {
-// 	user: process.env.DB_USER || 'user_CStudies',
-// 	password:
-// 		process.env.DB_PASSWORD ||
-// 		'foggy-misogyny-digestible-irascible-require-diamond',
-// 	server: process.env.DB_SERVER || 'com-dtrust-test.bluecat.arizona.edu',
-// 	database: process.env.DB_DATABASE || 'ClinicalStudies',
-// 	options: {
-// 		encrypt: true, // Use this if you're on Windows Azure
-// 		trustServerCertificate: true, // Use this to disable certificate validation
-// 	},
-// };
+console.log(config.user, config.password, config.server, config.database);
 
-async function fetchClinicalStudies() {
-	let pool = null;
+if (!config.user || !config.password || !config.server || !config.database) {
+	logger.error("Database environment variables aren't set properly!");
+	throw new Error("Database environment variables aren't set properly!");
+}
 
+async function getConnection() {
+	let pool;
 	try {
 		pool = await new sql.ConnectionPool(config).connect();
+		return pool;
+	} catch (err) {
+		logger.error('DB connection error:', err);
+		throw err;
+	}
+}
 
+async function fetchClinicalStudies() {
+	let pool = await getConnection();
+	try {
 		const result = await pool
 			.request()
 			.query(
@@ -41,12 +41,10 @@ async function fetchClinicalStudies() {
 			);
 		return result.recordset;
 	} catch (err) {
-		console.error('Error:', err);
-		throw err; // Propagate the error so it can be handled in the route
+		logger.error('Fetching Clinical Studies error:', err);
+		throw err;
 	} finally {
-		if (pool) {
-			pool.close();
-		}
+		pool.close();
 	}
 }
 
@@ -61,32 +59,24 @@ async function fetchClinicalStudyById(id) {
 		throw new Error('Invalid NCTId format.');
 	}
 
-	let pool = null;
-
+	let pool = await getConnection();
 	try {
-		pool = await new sql.ConnectionPool(config).connect();
-
 		const result = await pool
 			.request()
 			.input('NCTId', sql.NVarChar, id)
 			.query('SELECT * FROM ClinicalStudies WHERE NCTId = @NCTId;');
-
 		return result.recordset;
 	} catch (err) {
-		console.error('Error:', err);
+		logger.error('Fetching Clinical Study by ID error:', err);
 		throw err;
 	} finally {
-		if (pool) {
-			pool.close();
-		}
+		pool.close();
 	}
 }
 
 async function insertClinicalStudy(entry) {
-	let pool = null;
+	let pool = await getConnection();
 	try {
-		pool = await new sql.ConnectionPool(config).connect();
-
 		const { NCTId, OfficialTitle, BriefSummary } = entry.body;
 
 		const result = await pool
@@ -104,12 +94,10 @@ async function insertClinicalStudy(entry) {
 			return 'No row inserted.';
 		}
 	} catch (err) {
-		console.error('Error:', err);
+		logger.error('Inserting Clinical Study error:', err);
 		throw err;
 	} finally {
-		if (pool) {
-			pool.close();
-		}
+		pool.close();
 	}
 }
 
