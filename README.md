@@ -1,8 +1,8 @@
 # COMIT_API
 
-# Deploying RN stack on Ubuntu 22.04
+# Deploying SERN stack on Ubuntu 22.04
 
-> Detailed step by step procedure to deploying PERN(Postgres, Express, React, Node) stack on Ubuntu 20.04 with NGINX and SSL
+> Detailed step by step procedure to deploying SERN(SQL, Express, React, Node) stack on Ubuntu 20.04 with NGINX and SSL
 
 ## 1. Install and updating the packages
 
@@ -13,7 +13,7 @@ sudo apt update && sudo apt upgrade -y
 
 ## 2. Copy github repo to the Ubuntu sever
 
-Find a place to store your application code. In this example in the `ubuntu` home directory a new directory called `apps` will be created. Within the new `apps` directory another directory called `yelp-app`. Feel free to store your application code anywhere you see fit
+Find a place to store your application code. In this example in the `ubuntu` home directory a new directory called `apps` will be created. Within the new `apps` directory another directory called `COMIT`. Feel free to store your application code anywhere you see fit
 
 ```
 cd ~
@@ -40,7 +40,7 @@ sudo npm install pm2 -g
 ```
 Point pm2 to the location of the server.js file so it can start the app. We can add the `--name` flag to give the process a descriptive name
 ```
-pm2 start /home/ubuntu/apps/yelp-app/server/server.js --name yelp-app
+pm2 start /home/ubuntu/apps/COMIT_API/index.js
 ```
 
 Configure PM2 to automatically startup the process after a reboot
@@ -74,12 +74,11 @@ Navigate to the client directory in our App code and run `npm run build`.
 This will create a finalized production ready version of our react frontent in directory called `build`. The build folder is what the NGINX server will be configured to serve.
 
 ```
-ubuntu@ip-172-31-20-1:~/apps/yelp-app/client$ ls
+ubuntu@ip-172-31-20-1:~/apps/COMITFrontend/$ ls
 README.md  build  node_modules  package-lock.json  package.json  public  src
-ubuntu@ip-172-31-20-1:~/apps/COMITFrontend/client$ cd build/
-ubuntu@ip-172-31-20-1:~/apps/COMITFrontend/client/build$ ls
-asset-manifest.json  favicon.ico  index.html  logo192.png  logo512.png  manifest.json  precache-manifest.ee13f4c95d9882a5229da70669bb264c.js  robots.txt  service-worker.js  static
-ubuntu@ip-172-31-20-1:~/apps/yelp-app/client/build$
+ubuntu@ip-172-31-20-1:~/apps/COMITFrontend/client$ cd dist/
+ubuntu@ip-172-31-20-1:~/apps/COMITFrontend/client/dist$ ls
+asset-manifest.json  favicon.ico  index.html  logo192.png  logo512.png  manifest.json  
 ```
 
 ## 5. Install and Configure NGINX
