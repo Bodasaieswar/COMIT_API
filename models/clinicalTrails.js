@@ -39,7 +39,18 @@ async function fetchClinicalStudies() {
 			.query(
 				'SELECT NCTId, OfficialTitle, BriefSummary FROM ClinicalStudies;',
 			);
-		return result.recordset;
+
+		// Map the recordset to a desired structure
+		const mappedResults = result.recordset.map((record) => ({
+			nctId: record.NCTId,
+			title: record.OfficialTitle,
+			summary: record.BriefSummary,
+		}));
+
+		const prettyJson = JSON.stringify(mappedResults, null, 2);
+		console.log(prettyJson);
+
+		return mappedResults;
 	} catch (err) {
 		logger.error('Fetching Clinical Studies error:', err);
 		throw err;
