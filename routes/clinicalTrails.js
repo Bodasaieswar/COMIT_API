@@ -1,7 +1,9 @@
 const {
 	fetchClinicalStudies,
 	fetchClinicalStudyById,
+	fetchClinicalStudyLocationsById,
 	insertClinicalStudy,
+	insertClinicalStudyLocation,
 } = require('../models/clinicalTrails.js');
 const { logger } = require('../logger.js');
 const express = require('express');
@@ -11,7 +13,7 @@ const router = express.Router();
 router.get('/', async (req, res) => {
 	try {
 		const clinicalStudies = await fetchClinicalStudies();
-		res.send(clinicalStudies);
+		res.json(clinicalStudies);
 	} catch (err) {
 		logger.error(`Fetching Clinical Studies Error: ${err.message}`);
 		res.status(500).send('Internal server error');
@@ -25,10 +27,10 @@ router.get('/:id', async (req, res) => {
 		if (clinicalStudy.length === 0) {
 			return res
 				.status(404)
-				.send('The Clinical Trail with the given ID was not found.');
+				.send('The Clinical Trial with the given ID was not found.');
 		}
 
-		res.send(clinicalStudy[0]);
+		res.json(clinicalStudy);
 	} catch (err) {
 		logger.error(`Fetching Clinical Study by ID Error: ${err.message}`);
 
@@ -40,14 +42,51 @@ router.get('/:id', async (req, res) => {
 	}
 });
 
+router.get('/locations/:id', async (req, res) => {
+	try {
+		const clinicalStudyLocations = await fetchClinicalStudyLocationsById(
+			req.params.id,
+		);
+
+		if (clinicalStudyLocations.length === 0) {
+			return res
+				.status(404)
+				.send(
+					'The Clinical Trial Locations with the given ID was not found.',
+				);
+		}
+
+		res.json(clinicalStudyLocations);
+	} catch (err) {
+		logger.error(
+			`Fetching Clinical Study Locations by ID Error: ${err.message}`,
+		);
+
+		if (err.message === 'Invalid NCTId format.') {
+			res.status(400).send(err.message);
+		} else {
+			res.status(500).send('Internal Server Error');
+		}
+	}
+});
+
 router.post('/', async (req, res) => {
 	try {
-		await insertClinicalStudy(req);
+		await insertClinicalStudy(req.body);
 		res.status(200).send('Row successfully inserted.');
 	} catch (err) {
-		logger.error(`Inserting Clinical Study Error: ${err.message}`);
+		console.log(`Inserting Clinical Study Error: ${err.message}`);
 		res.status(500).send('Insertion failed');
 	}
 });
 
+router.post('/locations', async (req, res) => {
+	try {
+		await insertClinicalStudyLocation(req.body);
+		res.status(200).send('Row successfully inserted.');
+	} catch (err) {
+		console.log(`Inserting Clinical Study Error: ${err.message}`);
+		res.status(500).send('Insertion failed');
+	}
+});
 module.exports = router;

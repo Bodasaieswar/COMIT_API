@@ -1,10 +1,15 @@
 require('dotenv').config();
 const express = require('express');
 const app = express();
+const bodyParser = require('body-parser');
 
 const logger = require('./logger');
 const verifyEnvVariables = require('./envVerifier');
 verifyEnvVariables();
+
+// Configuring body-parser to accept larger request bodies
+app.use(bodyParser.json({ limit: '20mb' }));
+app.use(bodyParser.urlencoded({ limit: '20mb', extended: true }));
 
 require('./startup/routes')(app);
 

@@ -1,0 +1,20 @@
+BEGIN TRY
+
+BEGIN TRAN;
+
+-- AlterTable
+ALTER TABLE [dbo].[Protocol] ALTER COLUMN [BriefSummary] NVARCHAR(max) NULL;
+ALTER TABLE [dbo].[Protocol] ALTER COLUMN [EligibilityCriteria] NVARCHAR(max) NULL;
+
+COMMIT TRAN;
+
+END TRY
+BEGIN CATCH
+
+IF @@TRANCOUNT > 0
+BEGIN
+    ROLLBACK TRAN;
+END;
+THROW
+
+END CATCH

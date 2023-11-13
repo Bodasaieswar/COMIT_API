@@ -1,0 +1,55 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlserver"
+  url      = env("DATABASE_URL")
+}
+
+model Protocol {
+  protocolId           Int       @id
+  protocolStatus       String?
+  protocolNo           String?
+  library              String?
+  department           String?
+  organizationalUnit   String?
+  protocolType         String?
+  nctNo                String?
+  title                String?
+  shortTitle           String?
+  institution          String?
+  poc                  String?
+  poc_role             String?
+  poc_email            String?
+  poc_homeOrganization String?
+  BriefTitle           String?
+  OfficialTitle        String?
+  MinimumAge           String?
+  MaximumAge           String?
+  StartDate            DateTime?
+  CompletionDate       DateTime?
+  BriefSummary         String?   @db.NVarChar(MAX)
+  EligibilityCriteria  String?   @db.NVarChar(MAX)
+  LeadSponsorName      String?
+  Phase                String?
+  StudyType            String?
+  EnrollmentCount      Int?
+  LastUpdateSubmitDate DateTime?
+  dbcreateddata        DateTime  @default(now())
+}
+
+model TrialLocations {
+  id               Int      @id @default(autoincrement())
+  nctNo            String
+  LocationFacility String?
+  LocationStatus   String?
+  LocationCity     String?
+  LocationState    String?
+  LocationZip      String?
+  LocationCountry  String?
+  dbcreateddata    DateTime @default(now())
+}
