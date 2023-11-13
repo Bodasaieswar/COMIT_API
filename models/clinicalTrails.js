@@ -1,61 +1,44 @@
-const { PrismaClient } = require('@prisma/client');
-const Joi = require('joi');
 const { logger } = require('../logger.js');
-
-const prisma = new PrismaClient();
+const prisma = require('../prisma/prismaClient');
 
 // Utility function to validate the format of the nctNo
 function isValidNctNo(nctNo) {
-	return /^NCT\d{8}$/i.test(nctNo); // Simple regex to match NCT followed by 8 digits
-}
-
-function getDefaultDate() {
-	// This creates a new date object for December 31, 9999
-	return new Date('9999-12-31T23:59:59.999Z');
-}
-
-function parseDateOrDefault(dateString) {
-	if (!dateString) {
-		return getDefaultDate(); // Return the default date if dateString is not provided
-	}
-
-	const date = new Date(dateString);
-	if (isNaN(date.getTime())) {
-		// Checks if the date is invalid
-		return getDefaultDate(); // Return the default date if dateString is invalid
-	}
-
-	return date;
+	return /^NCT\d{8}$/i.test(nctNo);
 }
 
 async function fetchClinicalStudies() {
 	try {
-		const studies = await prisma.Protocol.findMany({
+		const studies = await prisma.protocol.findMany({
 			select: {
+				protocolId: true,
 				nctNo: true,
 				OfficialTitle: true,
 				BriefSummary: true,
 				protocolStatus: true,
 			},
 		});
-
 		return studies;
 	} catch (err) {
-		logger.error('Fetching Clinical Studies error:', err);
+		console.log('Fetching Clinical Studies error:', err);
 		throw err;
 	}
 }
 
 async function fetchClinicalStudyById(id) {
-	// Define the Joi schema for NCTId validation
-	if (!isValidNctNo(nctNo)) {
-		throw new Error('Invalid NCTId format.');
+	// Convert id to an integer
+	const protocolId = parseInt(id, 10);
+
+	// Check if conversion resulted in a valid number
+	if (isNaN(protocolId)) {
+		// Log and throw an error or handle it as per your application's error handling strategy
+		logger.error(`Invalid ID: ${id}`);
+		throw new Error('Invalid ID');
 	}
 
 	try {
-		const study = await prisma.Protocol.findUnique({
+		const study = await prisma.protocol.findUnique({
 			where: {
-				nctNo: id,
+				protocolId: protocolId,
 			},
 		});
 
@@ -70,9 +53,8 @@ async function fetchClinicalStudyLocationsById(nctNo) {
 	if (!isValidNctNo(nctNo)) {
 		throw new Error('Invalid NCTId format.');
 	}
-
 	try {
-		const locations = await prisma.trialLocation.findMany({
+		const locations = await prisma.trialLocations.findMany({
 			where: {
 				nctNo: nctNo,
 			},
@@ -83,7 +65,7 @@ async function fetchClinicalStudyLocationsById(nctNo) {
 		logger.error(
 			`Error fetching locations for NCT number ${nctNo}: ${err.message}`,
 		);
-		throw err; // Rethrow the error to be handled by the calling function
+		throw err;
 	}
 }
 
@@ -96,60 +78,52 @@ function convertToISODateString(dateString) {
 async function insertClinicalStudy(entries) {
 	try {
 		await prisma.protocol.deleteMany();
-		const batchSize = 10; // Adjust the batch size as needed
-        for (let i = 0; i < entries.length; i += batchSize) {
-            const batch = entries.slice(i, i + batchSize);
-			const upsertPromises = entries.map((entry) => {
-				// Convert protocolId to integer
-				const protocolId = parseInt(entry.protocolId, 10);
-				if (isNaN(protocolId)) {
-					throw new Error('Invalid protocolId');
-				}
 
-				// Convert EnrollmentCount to an integer, if it's not null
-				if (
-					entry.EnrollmentCount !== null &&
-					entry.EnrollmentCount !== undefined
-				) {
-					entry.EnrollmentCount = parseInt(entry.EnrollmentCount, 10);
-					if (isNaN(entry.EnrollmentCount)) {
-						// Handle the case where the conversion to integer fails
-						entry.EnrollmentCount = null; // or throw an error, based on your requirements
-					}
-				}
+		const upsertPromises = entries.map((entry) => {
+			// Convert protocolId to integer
+			const protocolId = parseInt(entry.protocolId, 10);
+			if (isNaN(protocolId)) {
+				throw new Error('Invalid protocolId');
+			}
 
-				if (entry.StartDate) {
-					entry.StartDate = convertToISODateString(entry.StartDate);
+			// Convert EnrollmentCount to an integer, if it's not null
+			if (
+				entry.EnrollmentCount !== null &&
+				entry.EnrollmentCount !== undefined
+			) {
+				entry.EnrollmentCount = parseInt(entry.EnrollmentCount, 10);
+				if (isNaN(entry.EnrollmentCount)) {
+					// Handle the case where the conversion to integer fails
+					entry.EnrollmentCount = null; // or throw an error, based on your requirements
 				}
-				if (entry.CompletionDate) {
-					entry.CompletionDate = convertToISODateString(
-						entry.CompletionDate,
-					);
-				}
+			}
 
-				// Convert LastUpdateSubmitDate to ISO-8601 format
-				if (entry.LastUpdateSubmitDate) {
-					entry.LastUpdateSubmitDate = convertToISODateString(
-						entry.LastUpdateSubmitDate,
-					);
-				}
-				// Truncate string fields as necessary
-				Object.keys(entry).forEach((key) => {
-					if (typeof entry[key] === 'string' && maxLengths[key]) {
-						entry[key] = truncateString(entry[key], maxLengths[key]);
-					}
-				});
+			if (entry.StartDate) {
+				entry.StartDate = convertToISODateString(entry.StartDate);
+			}
+			if (entry.CompletionDate) {
+				entry.CompletionDate = convertToISODateString(
+					entry.CompletionDate,
+				);
+			}
 
-				return prisma.protocol.upsert({
-					where: { protocolId },
-					update: { ...entry, protocolId },
-					create: { ...entry, protocolId },
-				});
+			// Convert LastUpdateSubmitDate to ISO-8601 format
+			if (entry.LastUpdateSubmitDate) {
+				entry.LastUpdateSubmitDate = convertToISODateString(
+					entry.LastUpdateSubmitDate,
+				);
+			}
+
+			return prisma.protocol.upsert({
+				where: { protocolId },
+				update: { ...entry, protocolId },
+				create: { ...entry, protocolId },
 			});
+		});
 
-			await Promise.all(upsertPromises);
-			return 'All protocols successfully inserted/updated.';
-		} catch (err) {
+		await Promise.all(upsertPromises);
+		return 'All protocols successfully inserted/updated.';
+	} catch (err) {
 		console.log('Inserting/Updating Protocols error:', err);
 		throw err;
 	}

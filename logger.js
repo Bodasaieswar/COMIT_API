@@ -12,13 +12,22 @@ const logger = winston.createLogger({
 	transports: [
 		new winston.transports.Console(),
 		new DailyRotateFile({
+			level: 'info',
 			filename: 'information-%DATE%.log',
 			datePattern: 'YYYY-MM-DD',
 			zippedArchive: true,
 			maxSize: '20m',
 			maxFiles: '7d',
 		}),
+		new DailyRotateFile({
+			level: 'error',
+			filename: 'error-%DATE%.log',
+			datePattern: 'YYYY-MM-DD',
+			zippedArchive: true,
+			maxSize: '20m',
+			maxFiles: '14d', // You can have a different retention policy for error logs
+		}),
 	],
 });
 
-module.exports = logger;
+module.exports = { logger };

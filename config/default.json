@@ -3,6 +3,7 @@
 		"server": "default_server",
 		"user": "default_user",
 		"database": "default_db",
-		"password": "default_password"
+		"password": "default_password",
+		"database_url": "default_URL"
 	}
 }

@@ -3,6 +3,7 @@
 		"server": "DB_SERVER",
 		"user": "DB_USER",
 		"database": "DB_DATABASE",
-		"password": "DB_PASSWORD"
+		"password": "DB_PASSWORD",
+		"database_url": "DATABASE_URL"
 	}
 }

@@ -15,7 +15,7 @@ router.get('/', async (req, res) => {
 		const clinicalStudies = await fetchClinicalStudies();
 		res.json(clinicalStudies);
 	} catch (err) {
-		logger.error(`Fetching Clinical Studies Error: ${err.message}`);
+		console.log(`Fetching Clinical Studies Error: ${err.message}`);
 		res.status(500).send('Internal server error');
 	}
 });

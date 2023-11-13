@@ -2,12 +2,11 @@ require('dotenv').config();
 const express = require('express');
 const app = express();
 const bodyParser = require('body-parser');
-
-const logger = require('./logger');
+const { logger } = require('./logger');
 const verifyEnvVariables = require('./envVerifier');
+
 verifyEnvVariables();
 
-// Configuring body-parser to accept larger request bodies
 app.use(bodyParser.json({ limit: '20mb' }));
 app.use(bodyParser.urlencoded({ limit: '20mb', extended: true }));
 
@@ -19,7 +18,8 @@ const server = app.listen(port, () => {
 		!process.env.DB_SERVER ||
 		!process.env.DB_USER ||
 		!process.env.DB_DATABASE ||
-		!process.env.DB_PASSWORD
+		!process.env.DB_PASSWORD ||
+		!process.env.DATABASE_URL
 	) {
 		logger.error(
 			`Server started but some environment variables are missing.`,
