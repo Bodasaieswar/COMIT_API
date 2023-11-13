@@ -22,7 +22,7 @@ async function fetchClinicalStudies() {
 		});
 
 		if (studies) {
-			myCache.set(cacheKey, study, 3600);
+			myCache.set(cacheKey, studies, 3600);
 		}
 
 		return studies;
@@ -81,7 +81,7 @@ async function fetchClinicalStudyLocationsById(nctNo) {
 		});
 
 		if (locations) {
-			myCache.set(cacheKey, study, 3600); // Cache for 1 hour (3600 seconds)
+			myCache.set(cacheKey, locations, 3600); // Cache for 1 hour (3600 seconds)
 		}
 
 		return locations;
