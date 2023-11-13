@@ -1,12 +1,15 @@
 const { logger } = require('../logger.js');
 const prisma = require('../prisma/prismaClient');
-
-// Utility function to validate the format of the nctNo
-function isValidNctNo(nctNo) {
-	return /^NCT\d{8}$/i.test(nctNo);
-}
+const myCache = require('../cache.js');
 
 async function fetchClinicalStudies() {
+	const cacheKey = 'all-trials';
+	const cachedData = myCache.get(cacheKey);
+
+	if (cachedData) {
+		return cachedData;
+	}
+
 	try {
 		const studies = await prisma.protocol.findMany({
 			select: {
@@ -17,22 +20,31 @@ async function fetchClinicalStudies() {
 				protocolStatus: true,
 			},
 		});
+
+		if (studies) {
+			myCache.set(cacheKey, study, 3600);
+		}
+
 		return studies;
 	} catch (err) {
-		console.log('Fetching Clinical Studies error:', err);
+		logger.error('Fetching Clinical Studies error:', err);
 		throw err;
 	}
 }
 
 async function fetchClinicalStudyById(id) {
-	// Convert id to an integer
 	const protocolId = parseInt(id, 10);
 
-	// Check if conversion resulted in a valid number
 	if (isNaN(protocolId)) {
-		// Log and throw an error or handle it as per your application's error handling strategy
 		logger.error(`Invalid ID: ${id}`);
 		throw new Error('Invalid ID');
+	}
+
+	const cacheKey = 'study-${id}';
+	const cachedData = myCache.get(cacheKey);
+
+	if (cachedData) {
+		return cachedData;
 	}
 
 	try {
@@ -42,6 +54,10 @@ async function fetchClinicalStudyById(id) {
 			},
 		});
 
+		if (study) {
+			myCache.set(cacheKey, study, 3600);
+		}
+
 		return study;
 	} catch (err) {
 		logger.error('Fetching Clinical Study by ID error:', err);
@@ -50,15 +66,23 @@ async function fetchClinicalStudyById(id) {
 }
 
 async function fetchClinicalStudyLocationsById(nctNo) {
-	if (!isValidNctNo(nctNo)) {
-		throw new Error('Invalid NCTId format.');
+	const cacheKey = 'study-locations-${nctNo}';
+	const cachedData = myCache.get(cacheKey);
+
+	if (cachedData) {
+		return cachedData; // Return cached data if available
 	}
+
 	try {
 		const locations = await prisma.trialLocations.findMany({
 			where: {
 				nctNo: nctNo,
 			},
 		});
+
+		if (locations) {
+			myCache.set(cacheKey, study, 3600); // Cache for 1 hour (3600 seconds)
+		}
 
 		return locations;
 	} catch (err) {
