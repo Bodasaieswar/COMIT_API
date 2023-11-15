@@ -10,18 +10,33 @@ const express = require('express');
 
 const router = express.Router();
 
-router.get('/', async (req, res) => {
-	try {
-		const clinicalStudies = await fetchClinicalStudies();
-		res.json(clinicalStudies);
-	} catch (err) {
-		console.log(`Fetching Clinical Studies Error: ${err.message}`);
-		res.status(500).send('Internal server error');
+// Middleware for handling async route errors
+const asyncMiddleware = (fn) => (req, res, next) => {
+	Promise.resolve(fn(req, res, next)).catch(next);
+};
+
+// Error handling middleware
+router.use((err, req, res, next) => {
+	logger.error(err.message);
+
+	if (err.message === 'Invalid NCTId format.') {
+		res.status(400).send(err.message);
+	} else {
+		res.status(500).send('Internal Server Error');
 	}
 });
 
-router.get('/:id', async (req, res) => {
-	try {
+router.get(
+	'/',
+	asyncMiddleware(async (req, res) => {
+		const clinicalStudies = await fetchClinicalStudies();
+		res.json(clinicalStudies);
+	}),
+);
+
+router.get(
+	'/:id',
+	asyncMiddleware(async (req, res) => {
 		const clinicalStudy = await fetchClinicalStudyById(req.params.id);
 
 		if (clinicalStudy.length === 0) {
@@ -31,19 +46,12 @@ router.get('/:id', async (req, res) => {
 		}
 
 		res.json(clinicalStudy);
-	} catch (err) {
-		logger.error(`Fetching Clinical Study by ID Error: ${err.message}`);
+	}),
+);
 
-		if (err.message === 'Invalid NCTId format.') {
-			res.status(400).send(err.message);
-		} else {
-			res.status(500).send('Internal Server Error');
-		}
-	}
-});
-
-router.get('/locations/:id', async (req, res) => {
-	try {
+router.get(
+	'/locations/:id',
+	asyncMiddleware(async (req, res) => {
 		const clinicalStudyLocations = await fetchClinicalStudyLocationsById(
 			req.params.id,
 		);
@@ -57,36 +65,23 @@ router.get('/locations/:id', async (req, res) => {
 		}
 
 		res.json(clinicalStudyLocations);
-	} catch (err) {
-		logger.error(
-			`Fetching Clinical Study Locations by ID Error: ${err.message}`,
-		);
+	}),
+);
 
-		if (err.message === 'Invalid NCTId format.') {
-			res.status(400).send(err.message);
-		} else {
-			res.status(500).send('Internal Server Error');
-		}
-	}
-});
-
-router.post('/', async (req, res) => {
-	try {
+router.post(
+	'/',
+	asyncMiddleware(async (req, res) => {
 		await insertClinicalStudy(req.body);
 		res.status(200).send('Row successfully inserted.');
-	} catch (err) {
-		console.log(`Inserting Clinical Study Error: ${err.message}`);
-		res.status(500).send('Insertion failed');
-	}
-});
+	}),
+);
 
-router.post('/locations', async (req, res) => {
-	try {
+router.post(
+	'/locations',
+	asyncMiddleware(async (req, res) => {
 		await insertClinicalStudyLocation(req.body);
 		res.status(200).send('Row successfully inserted.');
-	} catch (err) {
-		console.log(`Inserting Clinical Study Error: ${err.message}`);
-		res.status(500).send('Insertion failed');
-	}
-});
+	}),
+);
+
 module.exports = router;

@@ -1,4 +1,7 @@
 {
+	"port": "3000",
+	"bodyLimit": "20mb",
+
 	"db": {
 		"server": "default_server",
 		"user": "default_user",

@@ -5,6 +5,7 @@ const requiredEnvVariables = [
 	'DB_USER',
 	'DB_DATABASE',
 	'DB_PASSWORD',
+	'DATABASE_URL',
 ];
 
 function verifyEnvVariables() {
