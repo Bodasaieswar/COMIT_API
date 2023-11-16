@@ -28,6 +28,7 @@ async function fetchClinicalStudies() {
 	if (cachedData) return cachedData;
 
 	try {
+		await prisma.$connect();
 		const studies = await prisma.protocol.findMany({
 			select: {
 				protocolId: true,
@@ -41,9 +42,11 @@ async function fetchClinicalStudies() {
 		});
 
 		if (studies) myCache.set(cacheKey, studies, 3600);
+		await prisma.$disconnect();
 		return studies;
 	} catch (err) {
 		logger.error('Fetching Clinical Studies error:', err);
+		await prisma.$disconnect();
 		throw err;
 	}
 }
@@ -57,14 +60,17 @@ async function fetchClinicalStudyById(id) {
 	if (cachedData) return cachedData;
 
 	try {
+		await prisma.$connect();
 		const study = await prisma.protocol.findUnique({
 			where: { protocolId },
 		});
 
 		if (study) myCache.set(cacheKey, study, 3600);
+		await prisma.$disconnect();
 		return study;
 	} catch (err) {
 		logger.error('Fetching Clinical Study by ID error:', err);
+		await prisma.$disconnect();
 		throw err;
 	}
 }
@@ -75,20 +81,24 @@ async function fetchClinicalStudyLocationsById(nctNo) {
 	if (cachedData) return cachedData;
 
 	try {
+		await prisma.$connect();
 		const locations = await prisma.trialLocations.findMany({
 			where: { nctNo },
 		});
 
 		if (locations) myCache.set(cacheKey, locations, 3600);
+		await prisma.$disconnect();
 		return locations;
 	} catch (err) {
 		logger.error(`Error fetching locations for NCT number ${nctNo}:`, err);
+		await prisma.$disconnect();
 		throw err;
 	}
 }
 
 async function insertClinicalStudy(entries) {
 	try {
+		await prisma.$connect();
 		await prisma.protocol.deleteMany();
 		// Helper function to chunk an array into smaller arrays of a given size
 		const chunkArray = (arr, size) =>
@@ -147,15 +157,18 @@ async function insertClinicalStudy(entries) {
 
 			await Promise.all(upsertPromises);
 		}
+		await prisma.$disconnect();
 		return 'All protocols successfully inserted/updated.';
 	} catch (err) {
 		logger.error('Inserting/Updating Protocols error:', err);
+		await prisma.$disconnect();
 		throw err;
 	}
 }
 
 async function insertClinicalStudyLocation(entries) {
 	try {
+		await prisma.$connect();
 		await prisma.trialLocations.deleteMany();
 
 		const batchSize = 10; // Adjust batch size as needed
@@ -167,9 +180,11 @@ async function insertClinicalStudyLocation(entries) {
 			await Promise.all(insertPromises);
 		}
 
+		await prisma.$disconnect();
 		return 'All protocol locations successfully inserted.';
 	} catch (err) {
 		logger.error('Inserting Protocols location error:', err);
+		await prisma.$disconnect();
 		throw err;
 	}
 }
