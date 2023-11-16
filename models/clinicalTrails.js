@@ -35,6 +35,8 @@ async function fetchClinicalStudies() {
 				OfficialTitle: true,
 				BriefSummary: true,
 				protocolStatus: true,
+				MaximumAge: true,
+				MinimumAge: true,
 			},
 		});
 
@@ -88,15 +90,63 @@ async function fetchClinicalStudyLocationsById(nctNo) {
 async function insertClinicalStudy(entries) {
 	try {
 		await prisma.protocol.deleteMany();
-		const upsertPromises = entries.map((entry) =>
-			prisma.protocol.upsert({
-				where: { protocolId: entry.protocolId },
-				update: validateAndTransformEntry(entry),
-				create: validateAndTransformEntry(entry),
-			}),
-		);
+		// Helper function to chunk an array into smaller arrays of a given size
+		const chunkArray = (arr, size) =>
+			Array.from({ length: Math.ceil(arr.length / size) }, (v, i) =>
+				arr.slice(i * size, i * size + size),
+			);
 
-		await Promise.all(upsertPromises);
+		// Split entries into chunks of size 10
+		const entryChunks = chunkArray(entries, 10);
+
+		for (const chunk of entryChunks) {
+			const upsertPromises = entries.map((entry) => {
+				// Helper function to parse integers or return null
+				const parseToIntOrNull = (value) => {
+					const parsed = parseInt(value, 10);
+					return isNaN(parsed) ? null : parsed;
+				};
+
+				// Helper function to format dates or return null
+				const formatDateOrNull = (date) => {
+					if (!date) return null;
+					const parsedDate = new Date(date);
+					return isNaN(parsedDate.getTime())
+						? null
+						: parsedDate.toISOString();
+				};
+
+				// Apply the helper function to necessary fields
+				const parsedEntry = {
+					...entry,
+					protocolId: parseToIntOrNull(entry.protocolId),
+					protocolTargetAccrual: parseToIntOrNull(
+						entry.protocolTargetAccrual,
+					),
+					rcLowerAccrualGoal: parseToIntOrNull(
+						entry.rcLowerAccrualGoal,
+					),
+					rcUpperAccrualGoal: parseToIntOrNull(
+						entry.rcUpperAccrualGoal,
+					),
+					primaryCompletionDate: formatDateOrNull(
+						entry.primaryCompletionDate,
+					),
+					MinimumAge: parseToIntOrNull(entry.MinimumAge),
+					MaximumAge: parseToIntOrNull(entry.MaximumAge),
+				};
+
+				return prisma.protocol.upsert({
+					where: {
+						protocolId: parsedEntry.protocolId,
+					},
+					update: validateAndTransformEntry(parsedEntry),
+					create: validateAndTransformEntry(parsedEntry),
+				});
+			});
+
+			await Promise.all(upsertPromises);
+		}
 		return 'All protocols successfully inserted/updated.';
 	} catch (err) {
 		logger.error('Inserting/Updating Protocols error:', err);

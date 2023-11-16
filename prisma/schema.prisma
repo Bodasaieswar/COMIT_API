@@ -22,6 +22,15 @@ model Protocol {
   nctNo                String?
   title                String?
   shortTitle           String?
+  objectives           String? @db.NVarChar(MAX)
+  scope                String?
+  age                  String?
+  registrationCenter   String?
+  protocolTargetAccrual Int?
+  rcLowerAccrualGoal   Int?
+  rcUpperAccrualGoal   Int?
+  primaryCompletionDate DateTime?
+  primaryCompletionDateType String?
   institution          String?
   poc                  String?
   poc_role             String?
@@ -29,8 +38,8 @@ model Protocol {
   poc_homeOrganization String?
   BriefTitle           String?
   OfficialTitle        String?
-  MinimumAge           String?
-  MaximumAge           String?
+  MinimumAge           Int?
+  MaximumAge           Int?
   StartDate            DateTime?
   CompletionDate       DateTime?
   BriefSummary         String?   @db.NVarChar(MAX)
@@ -39,6 +48,7 @@ model Protocol {
   Phase                String?
   StudyType            String?
   EnrollmentCount      Int?
+  KeywordList          String?
   LastUpdateSubmitDate DateTime?
   dbcreateddata        DateTime  @default(now())
 }

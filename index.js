@@ -11,7 +11,7 @@ verifyEnvVariables();
 
 // CORS configuration
 const corsOptions = {
-	origin: 'http://localhost:8080', // Allow only this origin to access
+	origin: 'http://localhost:5173', // Allow only this origin to access
 	optionsSuccessStatus: 200, // For legacy browser support
 };
 
