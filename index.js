@@ -10,10 +10,25 @@ const cors = require('cors');
 verifyEnvVariables();
 
 // CORS configuration
+const allowedOrigins = [
+	'https://bodasaieswar.info',
+	'http://findaclinicaltrial.arizona.edu/',
+	'http://findaclinicaltrial.arizona.edu',
+	'https://bodasaieswar.info/',
+];
+
 const corsOptions = {
-	origin: config.get('source'), // Allow only this origin to access
-	optionsSuccessStatus: 200, // For legacy browser support
+	origin: function (origin, callback) {
+		if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
+			callback(null, true);
+		} else {
+			callback(new Error('Not allowed by CORS'));
+		}
+	},
+	optionsSuccessStatus: 200,
 };
+
+app.use(cors(corsOptions));
 
 app.use(cors(corsOptions)); // Use CORS with options
 
