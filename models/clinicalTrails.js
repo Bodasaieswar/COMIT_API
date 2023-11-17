@@ -33,9 +33,11 @@ async function fetchClinicalStudies() {
 			select: {
 				protocolId: true,
 				nctNo: true,
+				title: true,
 				OfficialTitle: true,
 				BriefSummary: true,
 				protocolStatus: true,
+				age: true,
 				MaximumAge: true,
 				MinimumAge: true,
 			},
@@ -47,7 +49,6 @@ async function fetchClinicalStudies() {
 	} catch (err) {
 		logger.error('Fetching Clinical Studies error:', err);
 		await prisma.$disconnect();
-		throw err;
 	}
 }
 
@@ -71,7 +72,6 @@ async function fetchClinicalStudyById(id) {
 	} catch (err) {
 		logger.error('Fetching Clinical Study by ID error:', err);
 		await prisma.$disconnect();
-		throw err;
 	}
 }
 
@@ -92,7 +92,6 @@ async function fetchClinicalStudyLocationsById(nctNo) {
 	} catch (err) {
 		logger.error(`Error fetching locations for NCT number ${nctNo}:`, err);
 		await prisma.$disconnect();
-		throw err;
 	}
 }
 
@@ -142,6 +141,11 @@ async function insertClinicalStudy(entries) {
 					primaryCompletionDate: formatDateOrNull(
 						entry.primaryCompletionDate,
 					),
+					StartDate: formatDateOrNull(entry.StartDate),
+					CompletionDate: formatDateOrNull(entry.CompletionDate),
+					LastUpdateSubmitDate: formatDateOrNull(
+						entry.LastUpdateSubmitDate,
+					),
 					MinimumAge: parseToIntOrNull(entry.MinimumAge),
 					MaximumAge: parseToIntOrNull(entry.MaximumAge),
 				};
@@ -162,7 +166,6 @@ async function insertClinicalStudy(entries) {
 	} catch (err) {
 		logger.error('Inserting/Updating Protocols error:', err);
 		await prisma.$disconnect();
-		throw err;
 	}
 }
 
@@ -185,7 +188,6 @@ async function insertClinicalStudyLocation(entries) {
 	} catch (err) {
 		logger.error('Inserting Protocols location error:', err);
 		await prisma.$disconnect();
-		throw err;
 	}
 }
 
